@@ -14,10 +14,10 @@ Built for the Hacktoberfest Open-Source AI Challenge, Week 2 (Side Hustle). Ente
 ## Files
 
 - `gemmascript.py`: the model call, the checker and the evaluation. Standard library only.
-- `tests.py`: 21 unit tests for the checker and the pipeline (`python tests.py`).
+- `tests.py`: 23 unit tests for the checker and the pipeline (`python tests.py`).
 - `gold.json`: 25 test messages with the correct answers. They were written with AI help to imitate customer messages. They are not real customers.
 - `catalogue.txt`: the price list.
-- `eval_v1.jsonl`, `eval_v2.jsonl`, `eval_v3.jsonl`: raw output of the evaluation, one line per message.
+- eval_v1.jsonl and eval_v2.jsonl: raw output of run 1. eval_v3.jsonl: raw output of run 2 (v3 only). eval_v3_run1.jsonl: v3 from run 1. : raw output of the evaluation, one line per message.
 - `index.html`: a single-file demo page. It uses fixed rules, not a model, because a browser page cannot run a model under its privacy settings. It makes no network requests and stores nothing.
 
 ## Run it
@@ -34,4 +34,4 @@ python gemmascript.py sort chat.txt --model gemma3:4b
 ## Credits and sources
 
 - Gemma, an open-weight model from Google, run locally through Ollama.
-- Prices in `catalogue.txt` are copied from a shop's public IndiaMART listing. Confirm real prices with the owner before relying on them.
+- Prices in catalogue.txt come from the shop's public IndiaMART listing and were confirmed by the shop owner.
