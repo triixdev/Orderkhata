@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Orderkhata</title>
+<style>
+:root{--bg:#dcd6c6;--panel:#e8e3d3;--ink:#1f2a2e;--mute:#55605f;--accent:#a63f1c;--ac:#f3ecdc;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b2123;--panel:#232b2d;--ink:#e5dec9;--mute:#9fa89f;--accent:#e2a24a;--ac:#1b2123;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1b2123;--panel:#232b2d;--ink:#e5dec9;--mute:#9fa89f;--accent:#e2a24a;--ac:#1b2123;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 Georgia,"Noto Serif Bengali","Kohinoor Bangla","Nirmala UI","Noto Serif Devanagari",serif}
+main{max-width:1040px;margin:0 auto;padding:28px 20px 64px}
+.m,textarea,th,button,.n{font-family:ui-monospace,"SF Mono",Menlo,Consolas,"Noto Sans Bengali","Nirmala UI",monospace}
+header{border-bottom:3px double var(--ink);padding-bottom:16px;margin-bottom:26px}
+h1{font-size:clamp(2.2rem,7vw,3.6rem);line-height:1;margin:0 0 10px}
+h2{font-size:1.3rem;margin:42px 0 10px;border-bottom:1px solid var(--ink);padding-bottom:6px}
+h3{font-size:1rem;margin:20px 0 4px}
+p{margin:0 0 12px;max-width:68ch}
+.s{font-size:.85rem;color:var(--mute)}
+label{display:block;font-size:.8rem;margin:16px 0 4px}
+textarea{width:100%;background:var(--panel);color:var(--ink);border:1px solid var(--ink);border-radius:0;padding:12px;font-size:.85rem;line-height:1.6;resize:vertical}
+#chat{min-height:260px}#cat{min-height:130px}#csv{min-height:90px}
+button{background:transparent;color:var(--ink);border:1px solid var(--ink);border-radius:0;padding:9px 14px;font-size:.82rem;cursor:pointer}
+button.go{background:var(--accent);color:var(--ac);border-color:var(--accent);font-weight:700}
+textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+.msg{min-height:1.4em;font-size:.85rem;color:var(--accent)}
+.tw{overflow-x:auto;border:1px solid var(--ink);background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:780px;font-size:.86rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--ink);vertical-align:top}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;border-bottom:2px solid var(--ink)}
+td.n,th.n{text-align:right}
+.bad{color:var(--accent)}
+.q{color:var(--mute);font-size:.8rem}
+.sk td div{height:.8em;background:var(--mute);opacity:.25;animation:p 1s ease-in-out infinite}
+@keyframes p{50%{opacity:.08}}
+@media (prefers-reduced-motion:reduce){.sk td div{animation:none}}
+ol,ul{max-width:68ch;padding-left:1.3em}li{margin-bottom:6px}
+pre{max-width:68ch;overflow-x:auto;background:var(--panel);border:1px solid var(--ink);padding:12px;font-size:.82rem;margin:0 0 12px}
+footer{margin-top:52px;border-top:3px double var(--ink);padding-top:14px}
+</style>
+</head>
+<body>
+<main>
+<header>
+<p class="m s">Orderkhata / WhatsApp order sorter for small shops / version 0.2</p>
+<h1>Orderkhata</h1>
+<p>Paste a WhatsApp chat where customers order in Bengali, Hindi, English or a mix. Get one line per customer with items, quantities, the time they asked for and a total from your own price list. Rentals are priced by the day. Every line is either checked or quoted. If a message is unclear it is flagged for you and never guessed.</p>
+</header>
+
+<section id="tool">
+<h2>Sort a chat</h2>
+<label for="chat">WhatsApp chat (export a chat, or paste messages)</label>
+<textarea id="chat" spellcheck="false"></textarea>
+<label for="cat">Your price list, one item per line: name | price | unit | other spellings separated by commas. Use the unit day for rentals.</label>
+<textarea id="cat" spellcheck="false"></textarea>
+<div class="bar">
+<button class="go" id="run">Sort orders</button>
+<button id="sample">Reload sample</button>
+<button id="copy">Copy as CSV</button>
+<button id="wipe">Erase everything</button>
+</div>
+<div class="msg" id="msg" role="status" aria-live="polite"></div>
+<div class="tw"><table>
+<thead><tr><th>Customer</th><th>Ordered</th><th>Asked for</th><th class="n">Total</th><th>Check</th><th>Their words</th></tr></thead>
+<tbody id="rows"><tr><td colspan="6" class="s">Nothing sorted yet.</td></tr></tbody>
+</table></div>
+<label for="csv">CSV for your sheet</label>
+<textarea id="csv" readonly spellcheck="false"></textarea>
+<p class="s" style="margin-top:12px">The sample chat and customers are invented and the sample prices come from a shop’s public listing. Totals are plain arithmetic on the prices you typed. Confirm every order with the customer before cooking or charging.</p>
+</section>
+
+<section>
+<h2>How a message is checked</h2>
+<ol>
+<li>The chat is split into messages by sender. Lines that continue a message are joined to it.</li>
+<li>Bengali and Devanagari digits become ordinary digits. Number words such as ek, dui, তিন, चार and দুটো are read as numbers.</li>
+<li>Item names are compared with your price list after spelling swaps (sh and s, o and a, doubled letters) are ignored. An exact match is accepted. A one letter miss is accepted but flagged so you confirm the spelling.</li>
+<li>A quantity is taken only from a number right next to the item. If none is there the line shows a question mark and a flag.</li>
+<li>An item priced per day is a rental. It needs a rental word such as rent or hire in the message and a number of days. A month counts as 30 days and a week as 7.</li>
+<li>Kilograms against a per piece price, dozens, very large quantities, cancellation words, correction words and the same item in two messages are all flagged.</li>
+<li>The words for day and time (kal, আজ, शाम, 7 बजे) are shown exactly as written without translation.</li>
+</ol>
+<h3>What this page does not do</h3>
+<p>This page uses fixed rules and short word lists. It misses sentences the rules do not cover and flags them for you. A browser page cannot download or run an open-weight model under the privacy settings used here, so no model runs on this page.</p>
+<h3>The model version</h3>
+<p>The Python script in the repository runs Gemma on your own computer through Ollama. Gemma reads each message and answers with items, quantities and the exact words it relied on. Code then checks every answer against the message and your price list, allows one retry, and otherwise hands the message back untouched. Prices and totals always come from your list. Install Ollama, pull the model, then run these two commands in the repository folder.</p>
+<pre class="m">ollama pull gemma3:4b
+python gemmascript.py sort chat.txt --model gemma3:4b</pre>
+<p>The evaluation numbers are in the DEV post. They come from running the same 25 messages through three prompt versions with <span class="m">python gemmascript.py eval</span>.</p>
+<h3>Credits</h3>
+<p>Gemma is an open-weight model from Google, run locally through Ollama. Sample prices are copied from a shop's public IndiaMART listing and must be confirmed with the owner before use.</p>
+</section>
+
+<section id="privacy">
+<h2>Privacy policy</h2>
+<p class="s">Last updated 19 October 2026.</p>
+<h3>What this page does with your data</h3>
+<p>The chat and price list you paste are processed in your browser’s memory and are not sent anywhere. The page has no analytics, trackers, cookies, advertising code or third party fonts and scripts.</p>
+<h3>Enforced by the browser</h3>
+<p>The page declares a Content Security Policy that blocks every outgoing request from its code and forbids form submission. A mistake in the page could not post your chat to a server. You can check this in your browser’s developer tools.</p>
+<h3>Other people’s details</h3>
+<p>Chats contain customers’ names, phone numbers and addresses. Use only chats you are allowed to use. Equipment orders can show that someone is unwell so remove names and addresses before pasting. The Erase button clears everything at once.</p>
+<h3>What is kept</h3>
+<p>Nothing. No local storage, session storage, IndexedDB or cookies are used. Reloading the tab discards your text. The CSV is only text in the box above. Copy it yourself.</p>
+<h3>The host</h3>
+<p>The hosting provider may log ordinary request details, such as your IP address, when you load the page. Those logs cover loading the page only.</p>
+<h3>Contact and changes</h3>
+<p>If this policy changes, the date above changes with it. Contact details are to be added by the publisher.</p>
+</section>
+
+<section id="terms">
+<h2>Terms of use</h2>
+<p class="s">Last updated 19 October 2026.</p>
+<ol>
+<li><b>As is.</b> The page is provided without warranties. Readings of messages, quantities and totals can be wrong or incomplete.</li>
+<li><b>Check every order.</b> Do not pack, deliver or charge from this page alone. Confirm with the customer, especially for any line marked in the Check column.</li>
+<li><b>No medical advice.</b> The page sorts orders and gives no guidance on which equipment a person needs.</li>
+<li><b>Your content.</b> You keep all rights to the chats and prices you paste and confirm you may use them, including other people’s messages.</li>
+<li><b>No payments.</b> The page does not take or handle money. Totals are arithmetic on your own prices.</li>
+<li><b>Acceptable use.</b> Do not use the page to process chats you have no right to use or to mislead customers.</li>
+<li><b>Liability.</b> To the extent the law allows, the publisher is not liable for loss or harm from using the page or from errors in its output.</li>
+<li><b>Changes.</b> These terms may be updated. Continued use after an update means you accept it.</li>
+</ol>
+</section>
+
+<footer class="s m">Orderkhata 0.2. No account, no upload, no storage.</footer>
+</main>
+
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var DG={};"০১২৩৪৫৬৭৮৯".split("").forEach(function(c,i){DG[c]=i});"०१२३४५६७८९".split("").forEach(function(c,i){DG[c]=i});
+function tok(t){t=t.normalize("NFC").toLowerCase().replace(/[\u09e6-\u09ef\u0966-\u096f]/g,function(c){return DG[c]});return t.match(/\d+|[\p{L}\p{M}]+/gu)||[];}
+function S(s){var o={};s.split(" ").forEach(function(w){o[w.normalize("NFC")]=1});return o;}
+var NW={};"ek:1 এক:1 एक:1 একটা:1 একটি:1 dui:2 duto:2 do:2 দুই:2 দুটো:2 দুটি:2 দুইটা:2 दो:2 tin:3 তিন:3 তিনটে:3 তিনটা:3 तीन:3 char:4 চার:4 চারটে:4 চারটা:4 चार:4 panch:5 paanch:5 পাঁচ:5 পাঁচটা:5 पांच:5 पाँच:5 chhoy:6 ছয়:6 छह:6 sat:7 সাত:7 सात:7 aat:8 আট:8 आठ:8 noy:9 नौ:9 dosh:10 দশ:10 दस:10".split(" ").forEach(function(p){var a=p.split(":");NW[a[0].normalize("NFC")]=+a[1]});
+var FILL=S("plate plates pcs pc piece pieces ta ti tay টা টি প্লেট प्लेट पीस bowl cup packet box kg kilo কেজি কিলো किलो dozen ডজন दर्जन");
+var KG=S("kg kilo কেজি কিলো किलो"),DZ=S("dozen ডজন दर्जन"),TW=S("am pm baje bajey বাজে টায় बजे");
+var DAY=S("aaj today kal tomorrow porshu আজ কাল পরশু आज कल परसों"),PER=S("sokal সকাল dupur দুপুর bikel বিকেল sandhya সন্ধ্যা shaam शाम rat রাত रात subah सुबह dopahar दोपहर");
+var ORD=S("lagbe lagbo chai chahiye order dorkar want need please dena dao লাগবে চাই দরকার चाहिए चाहिये");
+var CAN=S("cancel বাতিল रद्द"),COR=S("actually instead nahi nahin bodle change বদলে नहीं");
+var DU=S("day days din দিন दिन"),MO=S("month months mahina মাস महीना महीने"),WK=S("week weeks hapta সপ্তাহ हफ्ता"),RENT=S("rent rental hire bhara kiraya ভাড়া ভাড়ায় ভাড়াও किराया किराये"),STR=S("rental rent hire on pe");
+var CATS="Philips Everflo 5 LPM Oxygen Concentrator | 58500 | piece | philips oxygen concentrator, philips everflo, everflo\nPhilips SimplyGo Mini Oxygen Concentrator | 215000 | piece | simplygo mini, simplygo\nPortable Oxygen Concentrator | 30000 | piece | portable concentrator\nOxygen Concentrator Rental | 2500 | day | oxygen concentrator on rent, oxygen machine rent, concentrator rental\nPhilips DreamStation Auto CPAP | 48000 | piece | dreamstation cpap, dreamstation, philips cpap\nResMed Auto CPAP | 27000 | piece | resmed cpap, resmed machine, resmed auto cpap\nAuto CPAP Machine | 19500 | piece | auto cpap, cpap machine\nCPAP Machine Rental | 2000 | day | cpap on rent, cpap machine on rent, cpap rental\nPhilips True Blue Nasal Mask | 3000 | piece | philips mask, true blue mask\nCPAP Nasal Mask | 1000 | piece | cpap mask, nasal mask\nOxygen Mask | 35 | piece | ऑक्सीजन मास्क, অক্সিজেন মাস্ক\nMedical Air Mattress | 1500 | piece | air mattress, air bed, এয়ার ম্যাট্রেস\nOxygen Humidifier Bottle | 130 | piece | humidifier bottle, humidifier\nOxygen Nasal Cannula | 22 | piece | nasal cannula, cannula\nConnector Tube | 150 | piece | oxygen tube, tube, pipe";
+var SAMPLE="[19/10/26, 9:12 AM] Riya Sen: দাদা একটা philips oxygen concentrator লাগবে, কাল দুপুরে delivery hobe?\n[19/10/26, 9:14 AM] Mrs Banerjee: Need 2 oxygen concentrator on rent for 10 days\n[19/10/26, 9:20 AM] Amit Das: भैया 2 ऑक्सीजन मास्क और 1 humidifier bottle चाहिए, कल सुबह\n[19/10/26, 9:31 AM] Riya Sen: Actually 1 nasal cannula nahi, 3 nasal cannula kar dena\n[19/10/26, 9:40 AM] Sunita Roy: ek CPAP machine rent pe chahiye 15 din ke liye\n[19/10/26, 9:52 AM] Debjani: order cancel koro, plans change hoye gechhe\n[19/10/26, 10:05 AM] Imran: Do you deliver to Salt Lake?\n[19/10/26, 10:11 AM] Mr Das: 2 wheelchair lagbe aaj sondhe\n[19/10/26, 10:20 AM] Sunita Roy: Resmed auto cpap 1 ta, price bolun";
+function nz(s){return s.replace(/ee/g,"i").replace(/oo/g,"u").replace(/ph/g,"f").replace(/sh/g,"s").replace(/h/g,"").replace(/o/g,"a").replace(/w/g,"v").replace(/(.)\1+/g,"$1");}
+function lev(a,b){var p=[],i,j;for(j=0;j<=b.length;j++)p[j]=j;for(i=1;i<=a.length;i++){var c=[i];for(j=1;j<=b.length;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]!==b[j-1]?1:0));p=c;}return p[b.length];}
+function parseCat(t){var o=[];t.split("\n").slice(0,100).forEach(function(l){if(l.charAt(0)==="#")return;var p=l.split("|").map(function(x){return x.trim()});var pr=parseFloat(p[1]);if(!p[0]||!(pr>=0))return;var u=(p[2]||"piece").toLowerCase();var ks=[p[0]].concat((p[3]||"").split(",")).map(function(k){return tok(k.trim()).filter(function(w){return u!=="day"||!STR[w]}).map(nz)}).filter(function(k){return k.length});o.push({name:p[0],price:pr,unit:u,keys:ks});});return o;}
+function parseChat(t){var out=[],re=/^\[?(\d{1,2}[\/.]\d{1,2}[\/.]\d{2,4}),?\s+(\d{1,2}:\d{2}(?::\d{2})?(?:\s?[AaPp][Mm])?)\]?\s*(?:-\s*)?([^:]{1,40}?):\s(.*)$/;
+t.split(/\r?\n/).forEach(function(l){l=l.replace(/[\u200e\u200f]/g,"").trim();if(!l)return;var m=l.match(re);if(m)out.push({who:m[3].trim(),text:m[4]});else if(out.length)out[out.length-1].text+=" "+l;else out.push({who:"Unknown",text:l});});return out.slice(0,500);}
+function analyse(text,cat){var raw=tok(text),n=raw.map(nz),used={},taken={},slot=[],cands=[],acc=[],res={lines:[],flags:[],slot:slot,hit:false};
+var days=0,rent=raw.some(function(w){return RENT[w]});
+raw.forEach(function(w,i){if(/^\d+$/.test(w)&&TW[raw[i+1]]){used[i]=1;slot.push(w+" "+raw[i+1]);}else if(/^\d+$/.test(w)&&(DU[raw[i+1]]||MO[raw[i+1]]||WK[raw[i+1]])){used[i]=1;if(!days)days=+w*(MO[raw[i+1]]?30:WK[raw[i+1]]?7:1);}else if(DAY[w]||PER[w])slot.push(w);});
+cat.forEach(function(it){it.keys.forEach(function(k){var kj=k.join("");for(var i=0;i+k.length<=n.length;i++){var d=lev(n.slice(i,i+k.length).join(""),kj);if(d===0||(d===1&&kj.length>=6))cands.push({it:it,i:i,L:k.length,d:d});}});});
+cands.sort(function(a,b){return b.L-a.L||a.d-b.d||(((a.it.unit==="day")===rent?0:1)-((b.it.unit==="day")===rent?0:1))||a.i-b.i});
+cands.forEach(function(c){var j;for(j=c.i;j<c.i+c.L;j++)if(taken[j])return;for(j=c.i;j<c.i+c.L;j++)taken[j]=1;acc.push(c);});
+acc.sort(function(a,b){return a.i-b.i});
+function qa(j){if(j<0||j>=raw.length||used[j]||taken[j])return 0;return /^\d+$/.test(raw[j])?+raw[j]:(NW[raw[j]]||0);}
+acc.forEach(function(c){var it=c.it,j=c.i-1,k;while(j>=0&&FILL[raw[j]])j--;var q=qa(j),qp=j;
+if(!q){j=c.i+c.L;while(j<raw.length&&FILL[raw[j]])j++;q=qa(j);qp=j;}
+var words=raw.slice(c.i,c.i+c.L).join(" ");
+if(c.d)res.flags.push("“"+words+"” was read as "+it.name+" so confirm the spelling");
+if(!q){res.flags.push("quantity missing for "+it.name);res.lines.push({name:it.name,unit:it.unit,q:0,amt:0});return;}
+used[qp]=1;var lo=Math.min(qp,c.i)+1,hi=qp<c.i?c.i:qp,kg=false,dz=false;
+if(qp<c.i){for(k=qp+1;k<c.i;k++){if(KG[raw[k]])kg=true;if(DZ[raw[k]])dz=true;}}else{for(k=c.i+c.L;k<qp;k++){if(KG[raw[k]])kg=true;if(DZ[raw[k]])dz=true;}}
+if(dz){q*=12;res.flags.push("dozen read as 12 each for "+it.name);}
+if(kg&&it.unit!=="kg")res.flags.push(it.name+" asked in kg but your price is per "+it.unit);
+if(q>50)res.flags.push("unusually large quantity for "+it.name);
+var dd=0,am=q*it.price;if(it.unit==="day"){if(!rent)res.flags.push(it.name+" is a rental but the message has no rental word");if(days){dd=days;am=q*days*it.price;}else{res.flags.push("rental days missing for "+it.name);am=0;}}
+res.lines.push({name:it.name,unit:it.unit,q:q,days:dd,amt:am});});
+if(rent&&acc.length&&!acc.some(function(c){return c.it.unit==="day"}))res.flags.push("mentions renting but only purchase items matched so check rent or buy");
+if(raw.some(function(w){return CAN[w]}))res.flags.push("cancellation words found");
+if(raw.some(function(w){return COR[w]}))res.flags.push("possible correction so read it yourself");
+if(!acc.length&&raw.some(function(w){return ORD[w]}))res.flags.push("looks like an order but nothing matched your price list");
+res.hit=acc.length>0||res.flags.length>0;return res;}
+function build(msgs,cat){var by={},order=[];
+msgs.forEach(function(m){var a=analyse(m.text,cat);if(!a.hit)return;var o=by[m.who];if(!o){o=by[m.who]={who:m.who,items:{},cnt:{},flags:[],slot:[],q:[]};order.push(o);}
+a.lines.forEach(function(l){var x=o.items[l.name];if(x){x.q+=l.q;x.amt+=l.amt;}else o.items[l.name]={name:l.name,q:l.q,amt:l.amt,days:l.days};o.cnt[l.name]=(o.cnt[l.name]||0)+1;});
+a.flags.forEach(function(f){if(o.flags.indexOf(f)<0)o.flags.push(f);});a.slot.forEach(function(s){if(o.slot.indexOf(s)<0)o.slot.push(s);});o.q.push(m.text);});
+order.forEach(function(o){Object.keys(o.cnt).forEach(function(k){if(o.cnt[k]>1)o.flags.push(k+" appears more than once and may be a correction");});
+o.total=0;o.list=Object.keys(o.items).map(function(k){var x=o.items[k];o.total+=x.amt;return x.name+" x "+(x.q||"?")+(x.days?" for "+x.days+" days":"")+(x.q?" = Rs "+x.amt:"");});
+o.status=o.flags.length?"Check: "+o.flags.join("; "):"Matched with no problems found";});
+return order;}
+function mk(tag,txt,cls){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+function render(os){var tb=$("rows");tb.textContent="";
+if(!os.length){var tr=mk("tr"),td=mk("td","No orders found in this chat.","s");td.colSpan=6;tr.appendChild(td);tb.appendChild(tr);return;}
+os.forEach(function(o){var tr=mk("tr");tr.appendChild(mk("td",o.who));var c=mk("td");o.list.forEach(function(l){c.appendChild(mk("div",l,"m"));});if(!o.list.length)c.textContent="nothing matched";tr.appendChild(c);
+tr.appendChild(mk("td",o.slot.join(", ")||"not stated","m"));tr.appendChild(mk("td",o.list.length?"Rs "+o.total:"","n"));
+tr.appendChild(mk("td",o.status,o.flags.length?"bad":"m"));var qt=o.q.join(" / ");tr.appendChild(mk("td",qt.length>220?qt.slice(0,220)+"...":qt,"q"));tb.appendChild(tr);});}
+function cs(s){s=String(s);if(/^[=+\-@\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';}
+function toCsv(os){var r=[["Customer","Ordered","Asked for","Total","Check"]];os.forEach(function(o){r.push([o.who,o.list.join("; "),o.slot.join(", "),o.list.length?o.total:"",o.status]);});return r.map(function(x){return x.map(cs).join(",")}).join("\n");}
+function skel(){var tb=$("rows");tb.textContent="";for(var i=0;i<4;i++){var tr=mk("tr","","sk");for(var j=0;j<6;j++){var td=mk("td");td.appendChild(mk("div"));tr.appendChild(td);}tb.appendChild(tr);}}
+function load(){$("chat").value=SAMPLE;$("cat").value=CATS;}
+load();
+$("run").onclick=function(){var t=$("chat").value;if(!t.trim()){$("msg").textContent="Paste a chat first.";return;}$("msg").textContent="";skel();
+setTimeout(function(){var msgs=parseChat(t),os=build(msgs,parseCat($("cat").value));render(os);$("csv").value=os.length?toCsv(os):"";
+var ok=os.filter(function(o){return!o.flags.length}).length;$("msg").textContent=msgs.length+" messages read. "+os.length+" customers found, "+ok+" with no flags, "+(os.length-ok)+" to check.";},350);};
+$("sample").onclick=function(){load();$("msg").textContent="";};
+$("copy").onclick=function(){var v=$("csv").value;if(!v){$("msg").textContent="Nothing to copy yet.";return;}
+function hand(){$("csv").select();$("msg").textContent="Select the text and copy it by hand.";}
+try{navigator.clipboard.writeText(v).then(function(){$("msg").textContent="Copied.";},hand);}catch(e){hand();}};
+$("wipe").onclick=function(){$("chat").value="";$("cat").value="";$("csv").value="";render([]);$("msg").textContent="Erased.";};
+})();
+</script>
+</body>
+</html>

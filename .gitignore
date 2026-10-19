@@ -1,0 +1,5 @@
+chat.txt
+*.chat.txt
+real_*
+.env
+__pycache__/

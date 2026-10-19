@@ -1,0 +1,19 @@
+# name | price | unit | other spellings, separated by commas
+# Prices copied from the shop's public IndiaMART listing. Confirm with the owner before relying on them.
+# Add hospital bed, wheelchair, BiPAP and ICU items here with the real prices, for example:
+# Hospital Bed | 0 | piece | hospital bed, patient bed
+Philips Everflo 5 LPM Oxygen Concentrator | 58500 | piece | philips oxygen concentrator, philips everflo, everflo
+Philips SimplyGo Mini Oxygen Concentrator | 215000 | piece | simplygo mini, simplygo
+Portable Oxygen Concentrator | 30000 | piece | portable concentrator
+Oxygen Concentrator Rental | 2500 | day | oxygen concentrator on rent, oxygen machine rent, concentrator rental
+Philips DreamStation Auto CPAP | 48000 | piece | dreamstation cpap, dreamstation, philips cpap
+ResMed Auto CPAP | 27000 | piece | resmed cpap, resmed machine, resmed auto cpap
+Auto CPAP Machine | 19500 | piece | auto cpap, cpap machine
+CPAP Machine Rental | 2000 | day | cpap on rent, cpap machine on rent, cpap rental
+Philips True Blue Nasal Mask | 3000 | piece | philips mask, true blue mask
+CPAP Nasal Mask | 1000 | piece | cpap mask, nasal mask
+Oxygen Mask | 35 | piece | ऑक्सीजन मास्क, অক্সিজেন মাস্ক
+Medical Air Mattress | 1500 | piece | air mattress, air bed, এয়ার ম্যাট্রেস
+Oxygen Humidifier Bottle | 130 | piece | humidifier bottle, humidifier
+Oxygen Nasal Cannula | 22 | piece | nasal cannula, cannula
+Connector Tube | 150 | piece | oxygen tube, tube, pipe
