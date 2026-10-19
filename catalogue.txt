@@ -1,5 +1,5 @@
 # name | price | unit | other spellings, separated by commas
-# Prices copied from the shop's public IndiaMART listing. Confirm with the owner before relying on them.
+# Prices copied from the shop's public IndiaMART listing and confirmed by the owner.
 # Add hospital bed, wheelchair, BiPAP and ICU items here with the real prices, for example:
 # Hospital Bed | 0 | piece | hospital bed, patient bed
 Philips Everflo 5 LPM Oxygen Concentrator | 58500 | piece | philips oxygen concentrator, philips everflo, everflo
